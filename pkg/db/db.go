@@ -37,6 +37,7 @@ func (db *Database) Ping() {
 	var result bson.M
 	if err := db.Client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
 		fmt.Println("DB not connected")
+		return
 	}
 	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 }

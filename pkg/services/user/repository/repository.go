@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/vier21/go-book-api/pkg/db"
-	"github.com/vier21/go-book-api/pkg/services/User/model"
+	"github.com/vier21/go-book-api/pkg/services/user/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -30,7 +30,6 @@ func UpsertUser(u model.User) UpdateUser {
 	}
 }
 
-
 func NewRepository(userdb *db.Database) *UserRepository {
 	return &UserRepository{
 		UserDB: userdb,
@@ -41,7 +40,6 @@ func (repo *UserRepository) FindByUsername(ctx context.Context, username string)
 	var result model.User
 
 	coll := repo.UserDB.Client.Database("auth").Collection("user")
-
 	filter := bson.M{
 		"username": username,
 	}
@@ -64,7 +62,6 @@ func (repo *UserRepository) FindById(ctx context.Context, id string) (model.User
 	var result model.User
 
 	coll := repo.UserDB.Client.Database("auth").Collection("user")
-
 	filter := bson.M{
 		"_id": id,
 	}
@@ -85,8 +82,6 @@ func (repo *UserRepository) FindById(ctx context.Context, id string) (model.User
 
 func (repo *UserRepository) InsertUser(ctx context.Context, payload model.User) (model.User, error) {
 	coll := repo.UserDB.Client.Database("auth").Collection("user")
-
-
 
 	payload.Id = uuid.NewString()
 	_, err := coll.InsertOne(ctx, payload)
@@ -110,13 +105,12 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, payload model.User) 
 	}
 
 	res, err := coll.UpdateOne(ctx, filter, update)
-
 	if err != nil {
 		return model.User{}, err
 	}
 
 	if res.MatchedCount == 0 {
-		return model.User{}, errors.New("Failed Update because no id is matched")
+		return model.User{}, errors.New("failed Update because no id is matched")
 	}
 
 	fmt.Println("data succesfull updated")
@@ -124,22 +118,16 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, payload model.User) 
 	return payload, nil
 }
 
-func (repo *UserRepository) DeleteUser(ctx context.Context, id ...string) error {
+func (repo *UserRepository) DeleteUser(ctx context.Context, ids ...string) error {
+
 	coll := repo.UserDB.Client.Database("auth").Collection("user")
-
-	if len(id) > 1 {
-		filter, err := bson.Marshal(id)
-
-		if err != nil {
-			return err
-		}
-
+	if len(ids) > 1 {
+		
 		models := []mongo.WriteModel{
-			mongo.NewDeleteManyModel().SetFilter(bson.D{{"_id", bson.D{{"$in", filter}}}}),
+			mongo.NewDeleteManyModel().SetFilter(bson.D{{"_id", bson.D{{"$in", ids}}}}),
 		}
 
 		del, err := coll.BulkWrite(ctx, models)
-
 		if err != nil {
 			return err
 		}
@@ -149,11 +137,10 @@ func (repo *UserRepository) DeleteUser(ctx context.Context, id ...string) error 
 	}
 
 	filter := bson.M{
-		"_id": id[0],
+		"_id": ids[0],
 	}
 
 	del, err := coll.DeleteOne(ctx, filter)
-
 	if err != nil {
 		return err
 	}
