@@ -9,7 +9,6 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o api cmd/app/main.go
 
 FROM build AS dev-env
-
 CMD ["go", "run", "cmd/app/main.go"]
 
 FROM alpine:latest

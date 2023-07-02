@@ -61,6 +61,6 @@ func (a *Auth) LoginUser(ctx context.Context, payload utils.LoginRequest) (utils
 	}
 
 	//Generate JWT here
-
+	
 	return utils.LoginPayload{}, nil
 }
