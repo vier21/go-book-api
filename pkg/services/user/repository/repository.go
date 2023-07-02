@@ -17,9 +17,9 @@ type UserRepository struct {
 }
 
 type UpdateUser struct {
-	Username string `json:"username, omitempty" bson:"username, omitempty"`
-	Password string `json:"password, omitempty" bson:"password, omitempty"`
-	Email    string `json:"email, omitempty" bson:"email, omitempty"`
+	Username string `json:"username,omitempty" bson:"username,omitempty"`
+	Password string `json:"password,omitempty" bson:"password,omitempty"`
+	Email    string `json:"email,omitempty" bson:"email,omitempty"`
 }
 
 func UpsertUser(u model.User) UpdateUser {
@@ -122,7 +122,7 @@ func (repo *UserRepository) DeleteUser(ctx context.Context, ids ...string) error
 
 	coll := repo.UserDB.Client.Database("auth").Collection("user")
 	if len(ids) > 1 {
-		
+
 		models := []mongo.WriteModel{
 			mongo.NewDeleteManyModel().SetFilter(bson.D{{"_id", bson.D{{"$in", ids}}}}),
 		}

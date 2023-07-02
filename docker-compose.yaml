@@ -1,1 +1,22 @@
 version: '3.8'
+
+services:
+  db:
+    image: mongo
+    ports:
+      - "27018:27017"
+  backend:
+    build:
+      context: .
+      target: dev-env
+    environment:
+      - MONGODB_URI=mongodb://db:27018
+    depends_on:
+      - db
+
+    
+
+
+
+    
+  

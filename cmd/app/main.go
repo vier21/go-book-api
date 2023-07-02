@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,9 @@ import (
 	"strings"
 
 	_ "github.com/google/uuid"
+	"github.com/vier21/go-book-api/pkg/db"
+	"github.com/vier21/go-book-api/pkg/services/user/model"
+	"github.com/vier21/go-book-api/pkg/services/user/repository"
 )
 
 type Server struct {
@@ -20,31 +24,31 @@ func Any(id ...string) {
 }
 
 func main() {
-	// db := db.NewConnection()
-	// defer db.Disconnect()
+	db := db.NewConnection()
+	defer db.Disconnect()
 
-	// db.Ping()
+	db.Ping()
 
-	// repo := repository.NewRepository(db)
+	repo := repository.NewRepository(db)
 
-	// result, err := repo.UpdateUser(context.TODO(), model.User{
-	// 	Id:       "bd6d4fdsds",
-	// 	Username: "kuntul",
-	// 	Password: "babak210901",
-	// 	Email:    "XavierSamuel@gmail.com",
-	// })
+	result, err := repo.UpdateUser(context.TODO(), model.User{
+		Id:       "bd6d4fdsds",
+		Username: "kuntul",
+		Password: "babak210901",
+		Email:    "XavierSamuel@gmail.com",
+	})
 
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
+	if err != nil {
+		fmt.Println(err)
+	}
 
-	// fmt.Println(result, err)
+	fmt.Println(result, err)
 
-	// Any("marco")
+	Any("marco")
 
-	// if err := repo.DeleteUser(context.TODO(), "bd6d4f36-9cd7-420f-8ae2-a9343f92f6dd"); err != nil {
-	// 	fmt.Println(err)
-	// }
+	if err := repo.DeleteUser(context.TODO(), "bd6d4f36-9cd7-420f-8ae2-a9343f92f6dd"); err != nil {
+		fmt.Println(err)
+	}
 	path, err := os.Getwd()
 	if err != nil {
 		log.Println(err)
