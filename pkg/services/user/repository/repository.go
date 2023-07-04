@@ -13,7 +13,7 @@ import (
 )
 
 type UserRepository struct {
-	UserDB *db.Database
+	client *mongo.Client
 }
 
 type UpdateUser struct {
@@ -30,16 +30,22 @@ func UpsertUser(u model.User) UpdateUser {
 	}
 }
 
-func NewRepository(userdb *db.Database) *UserRepository {
+func NewRepository() *UserRepository {
+	if db.DB != nil {
+		return &UserRepository{
+			client: db.DB,
+		}
+	}
+	client := db.NewConnection()
 	return &UserRepository{
-		UserDB: userdb,
+		client: client,
 	}
 }
 
 func (repo *UserRepository) FindByUsername(ctx context.Context, username string) (model.User, error) {
 	var result model.User
 
-	coll := repo.UserDB.Client.Database("auth").Collection("user")
+	coll := repo.client.Database("auth").Collection("user")
 	filter := bson.M{
 		"username": username,
 	}
@@ -61,7 +67,7 @@ func (repo *UserRepository) FindByUsername(ctx context.Context, username string)
 func (repo *UserRepository) FindById(ctx context.Context, id string) (model.User, error) {
 	var result model.User
 
-	coll := repo.UserDB.Client.Database("auth").Collection("user")
+	coll := repo.client.Database("auth").Collection("user")
 	filter := bson.M{
 		"_id": id,
 	}
@@ -81,7 +87,7 @@ func (repo *UserRepository) FindById(ctx context.Context, id string) (model.User
 }
 
 func (repo *UserRepository) InsertUser(ctx context.Context, payload model.User) (model.User, error) {
-	coll := repo.UserDB.Client.Database("auth").Collection("user")
+	coll := repo.client.Database("auth").Collection("user")
 
 	payload.Id = uuid.NewString()
 	_, err := coll.InsertOne(ctx, payload)
@@ -94,7 +100,7 @@ func (repo *UserRepository) InsertUser(ctx context.Context, payload model.User) 
 }
 
 func (repo *UserRepository) UpdateUser(ctx context.Context, payload model.User) (model.User, error) {
-	coll := repo.UserDB.Client.Database("auth").Collection("user")
+	coll := repo.client.Database("auth").Collection("user")
 
 	filter := bson.M{
 		"_id": payload.Id,
@@ -120,7 +126,7 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, payload model.User) 
 
 func (repo *UserRepository) DeleteUser(ctx context.Context, ids ...string) error {
 
-	coll := repo.UserDB.Client.Database("auth").Collection("user")
+	coll := repo.client.Database("auth").Collection("user")
 	if len(ids) > 1 {
 
 		models := []mongo.WriteModel{

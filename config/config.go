@@ -9,6 +9,8 @@ import (
 
 type Config struct {
 	MongoDBURL string
+	SecretKey []byte
+	ServerPort string
 }
 
 func init()  {
@@ -21,6 +23,12 @@ func init()  {
 func GetConfig() *Config  {
 	return &Config{
 		MongoDBURL: os.Getenv("MONGODB_URI"),
+		SecretKey: GetSecretKey(),
+		ServerPort: os.Getenv("SERVER_PORT"),
 	}
+}
+
+func GetSecretKey() []byte {
+	return []byte(os.Getenv("SECRET_KEY"))
 }
 

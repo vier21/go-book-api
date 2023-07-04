@@ -12,12 +12,10 @@ type UserRepo interface {
 	FindById(context.Context, string) (model.User, error)
 	InsertUser(context.Context, model.User) (model.User, error)
 	UpdateUser(context.Context, model.User) (model.User, error)
-	DeleteUser(context.Context, string) (model.User, error)
+	DeleteUser(context.Context, ...string) error
 }
 
-type AuthService interface {
-	RegisterUser(context.Context, model.User) (utils.RegisterResponse, error)
-	LoginUser(context.Context, utils.LoginPayload) (utils.LoginResponse, error)
-	DeleteUser(context.Context, string) error
-	UpdateUser(context.Context, model.User) (model.User, error)
+type UserService interface {
+	RegisterUser(context.Context, model.User) (model.User, error)
+	LoginUser(context.Context, utils.LoginRequest) (string, error)
 }

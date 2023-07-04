@@ -2,42 +2,41 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/vier21/go-book-api/config"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-type Database struct {
-	Client *mongo.Client
-}
+var DB *mongo.Client
 
-func NewConnection() *Database {
-	client, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(config.GetConfig().MongoDBURL))
+func NewConnection() *mongo.Client {
+
+	url := config.GetConfig().MongoDBURL
+
+	if url == "" {
+		log.Fatal("You have to set MONGODB_URI to environment variable")
+	}
+
+	var err error
+	DB, err = mongo.Connect(context.TODO(), options.Client().ApplyURI(url))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = DB.Ping(context.TODO(), readpref.Primary())
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &Database{
-		Client: client,
-	}
+	return DB
 }
 
-func (db *Database) Disconnect() {
-	if err := db.Client.Disconnect(context.TODO()); err != nil {
+func Disconnect() {
+	if err := DB.Disconnect(context.Background()); err != nil {
 		panic(err)
 	}
-}
-
-func (db *Database) Ping() {
-	var result bson.M
-	if err := db.Client.Database("admin").RunCommand(context.TODO(), bson.D{{"ping", 1}}).Decode(&result); err != nil {
-		fmt.Println("DB not connected")
-		return
-	}
-	fmt.Println("Pinged your deployment. You successfully connected to MongoDB!")
 }

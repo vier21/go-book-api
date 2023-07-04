@@ -10,7 +10,7 @@ services:
       context: .
       target: dev-env
     environment:
-      - MONGODB_URI=mongodb://db:27018
+      - MONGODB_URI=mongodb://db:27017
     depends_on:
       - db
 
