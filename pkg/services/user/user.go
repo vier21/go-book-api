@@ -9,6 +9,7 @@ import (
 
 type UserRepo interface {
 	FindByUsername(context.Context, string) (model.User, error)
+	FindByEmail(context.Context, string) (model.User, error)
 	FindById(context.Context, string) (model.User, error)
 	InsertUser(context.Context, model.User) (model.User, error)
 	UpdateUser(context.Context, model.User) (model.User, error)
@@ -16,6 +17,6 @@ type UserRepo interface {
 }
 
 type UserService interface {
-	RegisterUser(context.Context, model.User) (model.User, error)
-	LoginUser(context.Context, utils.LoginRequest) (string, error)
+	RegisterUser(context.Context, model.User) (utils.RegisterPayload, error)
+	LoginUser(context.Context, utils.LoginRequest) (utils.LoginPayload ,string, error)
 }

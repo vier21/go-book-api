@@ -64,6 +64,28 @@ func (repo *UserRepository) FindByUsername(ctx context.Context, username string)
 	return result, nil
 }
 
+func (repo *UserRepository) FindByEmail(ctx context.Context, email string) (model.User, error) {
+	var result model.User
+
+	coll := repo.client.Database("auth").Collection("user")
+	filter := bson.M{
+		"email": email,
+	}
+
+	doc := coll.FindOne(ctx, filter)
+	if doc.Err() != nil {
+		if doc.Err() == mongo.ErrNoDocuments {
+			return model.User{}, doc.Err()
+		}
+	}
+
+	if err := doc.Decode(&result); err != nil {
+		return model.User{}, err
+	}
+
+	return result, nil
+}
+
 func (repo *UserRepository) FindById(ctx context.Context, id string) (model.User, error) {
 	var result model.User
 

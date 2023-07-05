@@ -34,40 +34,53 @@ func NewUserService(auth user.UserRepo) *User {
 	}
 }
 
-func (a *User) RegisterUser(ctx context.Context, payload model.User) (model.User, error) {
+func RegisterResConverter(user model.User) utils.RegisterPayload {
+	return utils.RegisterPayload{
+		Id:       user.Id,
+		Username: user.Username,
+		Email:    user.Email,
+	}
+}
 
-	exist, _ := a.UserStore.FindByUsername(ctx, payload.Username)
+func (a *User) RegisterUser(ctx context.Context, payload model.User) (utils.RegisterPayload, error) {
 
-	if exist.Username == payload.Username {
-		if exist.Email == payload.Email {
-			return exist, ErrEmailAlreadyExist
-		}
-		return exist, ErrUsernameAlreadyExist
+	existname, _ := a.UserStore.FindByUsername(ctx, payload.Username)
+	existemail, _ := a.UserStore.FindByEmail(ctx, payload.Email)
+
+	email := existemail.Email
+	username := existname.Username
+
+	if username == payload.Username {
+		return RegisterResConverter(existname), ErrUsernameAlreadyExist
+	}
+
+	if email == payload.Email {
+		return RegisterResConverter(existemail), ErrEmailAlreadyExist
 	}
 
 	pass, err := utils.HashPassword(payload.Password)
 
 	payload.Password = pass
 	if err != nil {
-		return model.User{}, err
+		return RegisterResConverter(model.User{}), err
 	}
 
 	res, err := a.UserStore.InsertUser(ctx, payload)
 	if err != nil {
-		return res, ErrInsertUser
+		return RegisterResConverter(res), ErrInsertUser
 	}
 
-	return res, nil
+	return RegisterResConverter(res), nil
 }
 
-func (a *User) LoginUser(ctx context.Context, req utils.LoginRequest) (string, error) {
+func (a *User) LoginUser(ctx context.Context, req utils.LoginRequest) (utils.LoginPayload, string, error) {
 	doc, err := a.UserStore.FindByUsername(ctx, req.Username)
 	if err != nil {
-		return "", errors.New("user not found")
+		return utils.LoginPayload{}, "", errors.New("user not found")
 	}
 
 	if err := utils.CheckPasswordHash(req.Password, doc.Password); err != nil {
-		return "", errors.New("password not matched")
+		return utils.LoginPayload{}, "", errors.New("password not matched")
 	}
 
 	mySigningKey := config.GetConfig().SecretKey
@@ -93,8 +106,9 @@ func (a *User) LoginUser(ctx context.Context, req utils.LoginRequest) (string, e
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
 	if err != nil {
-		return "", err
+		payload = utils.LoginPayload{}
+		return payload, "", err
 	}
 
-	return ss, nil
+	return payload, ss, nil
 }

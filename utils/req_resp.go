@@ -18,6 +18,7 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	Status  string       `json:"status"`
+	Token   string       `json:"token`
 	Payload LoginPayload `json:"data"`
 }
 

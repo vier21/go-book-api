@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/vier21/go-book-api/config"
 	"github.com/vier21/go-book-api/pkg/services/user"
+	"github.com/vier21/go-book-api/pkg/services/user/middleware"
 )
 
 type ApiServer struct {
@@ -38,10 +38,12 @@ func NewServer(svc user.UserService) *ApiServer {
 }
 
 func (a *ApiServer) Run() error {
-	a.Mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello from %s", r.URL.Path)
-	})
+	mux := a.Mux
 
+	mux.HandleFunc("/api/v1/register", middleware.TimoutMiddleware(a.RegisterHandler))
+	mux.HandleFunc("/api/v1/login", a.LoginHandler)
+	mux.HandleFunc("/api/v1/user", middleware.VerifyJWT(a.GetUserHandler))
+	
 	go func() {
 		log.Printf("Server start on localhost%s \n", config.GetConfig().ServerPort)
 		err := a.Server.ListenAndServe()
@@ -57,11 +59,15 @@ func (a *ApiServer) Run() error {
 func (a *ApiServer) GracefullShutdown() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
+
 	<-quit
+
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
 	if err := a.Server.Shutdown(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 	log.Println("Server stopped gracefully")
 }
