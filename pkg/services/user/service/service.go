@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 	"github.com/vier21/go-book-api/config"
 	"github.com/vier21/go-book-api/pkg/services/user"
+	"github.com/vier21/go-book-api/pkg/services/user/def"
 	"github.com/vier21/go-book-api/pkg/services/user/model"
 	"github.com/vier21/go-book-api/utils"
 )
@@ -20,7 +22,7 @@ var (
 )
 
 type JWTClaims struct {
-	Data utils.LoginPayload `json:"data"`
+	Data def.LoginPayload `json:"data"`
 	jwt.RegisteredClaims
 }
 
@@ -34,18 +36,18 @@ func NewUserService(auth user.UserRepo) *User {
 	}
 }
 
-func RegisterResConverter(user model.User) utils.RegisterPayload {
-	return utils.RegisterPayload{
-		Id:       user.Id,
-		Username: user.Username,
-		Email:    user.Email,
+func RegisterResConverter(usr model.User) def.RegisterPayload {
+	return def.RegisterPayload{
+		Id:       usr.Id,
+		Username: usr.Username,
+		Email:    usr.Email,
 	}
 }
 
-func (a *User) RegisterUser(ctx context.Context, payload model.User) (utils.RegisterPayload, error) {
+func (u *User) RegisterUser(ctx context.Context, payload model.User) (def.RegisterPayload, error) {
 
-	existname, _ := a.UserStore.FindByUsername(ctx, payload.Username)
-	existemail, _ := a.UserStore.FindByEmail(ctx, payload.Email)
+	existname, _ := u.UserStore.FindByUsername(ctx, payload.Username)
+	existemail, _ := u.UserStore.FindByEmail(ctx, payload.Email)
 
 	email := existemail.Email
 	username := existname.Username
@@ -65,7 +67,7 @@ func (a *User) RegisterUser(ctx context.Context, payload model.User) (utils.Regi
 		return RegisterResConverter(model.User{}), err
 	}
 
-	res, err := a.UserStore.InsertUser(ctx, payload)
+	res, err := u.UserStore.InsertUser(ctx, payload)
 	if err != nil {
 		return RegisterResConverter(res), ErrInsertUser
 	}
@@ -73,19 +75,19 @@ func (a *User) RegisterUser(ctx context.Context, payload model.User) (utils.Regi
 	return RegisterResConverter(res), nil
 }
 
-func (a *User) LoginUser(ctx context.Context, req utils.LoginRequest) (utils.LoginPayload, string, error) {
-	doc, err := a.UserStore.FindByUsername(ctx, req.Username)
+func (u *User) LoginUser(ctx context.Context, req def.LoginRequest) (def.LoginPayload, string, error) {
+	doc, err := u.UserStore.FindByUsername(ctx, req.Username)
 	if err != nil {
-		return utils.LoginPayload{}, "", errors.New("user not found")
+		return def.LoginPayload{}, "", errors.New("user not found")
 	}
 
 	if err := utils.CheckPasswordHash(req.Password, doc.Password); err != nil {
-		return utils.LoginPayload{}, "", errors.New("password not matched")
+		return def.LoginPayload{}, "", errors.New("password not matched")
 	}
 
 	mySigningKey := config.GetConfig().SecretKey
 
-	payload := utils.LoginPayload{
+	payload := def.LoginPayload{
 		Id:       doc.Id,
 		Username: doc.Username,
 		Email:    doc.Email,
@@ -106,9 +108,38 @@ func (a *User) LoginUser(ctx context.Context, req utils.LoginRequest) (utils.Log
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
 	if err != nil {
-		payload = utils.LoginPayload{}
+		payload = def.LoginPayload{}
 		return payload, "", err
 	}
 
 	return payload, ss, nil
+}
+
+func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (model.UpdatedUser, error) {
+	doc, err := u.UserStore.UpdateUser(ctx, id, payload) 
+ 
+	if err != nil {
+		return model.UpdatedUser{}, err
+	}
+	
+	result := updatedUser(doc)
+
+	return result, nil
+}
+
+func (u *User) DeleteUser(ctx context.Context, id string) error {
+	str :=  []string{"sdasd","dasdas","dsadas"}
+	err := u.UserStore.DeleteUser(ctx, str...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func updatedUser(upUser model.User) model.UpdatedUser {
+	return model.UpdatedUser{
+		Id:       upUser.Id,
+		Username: upUser.Username,
+		Email:    upUser.Email,
+	}
 }

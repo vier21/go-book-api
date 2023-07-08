@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/vier21/go-book-api/pkg/services/user/def"
 	"github.com/vier21/go-book-api/pkg/services/user/model"
-	"github.com/vier21/go-book-api/utils"
 )
 
 var (
@@ -41,7 +42,7 @@ func (a *ApiServer) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	httpcode := strconv.Itoa(http.StatusOK)
 	status := fmt.Sprintf("Success (%s)", httpcode)
 
-	result := utils.RegisterResponse{
+	result := def.RegisterResponse{
 		Status:  status,
 		Payload: register,
 	}
@@ -50,7 +51,6 @@ func (a *ApiServer) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "fail to fetch responses", http.StatusInternalServerError)
 		return
 	}
-
 }
 
 func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "application/json")
 
-	var req utils.LoginRequest
+	var req def.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
@@ -79,7 +79,7 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	httpcode := strconv.Itoa(http.StatusOK)
 	status := fmt.Sprintf("Success (%s)", httpcode)
 
-	resp := utils.LoginResponse{
+	resp := def.LoginResponse{
 		Status:  status,
 		Token:   token,
 		Payload: loginpayload,
@@ -90,19 +90,26 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *ApiServer) GetUserHandler(w http.ResponseWriter, r *http.Request) {
+func (a *ApiServer) GetCurrentUserHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
 		http.Error(w, ErrMethodNotAllow, http.StatusBadRequest)
 		return
 	}
-
-	fmt.Fprintf(w, "Hello from user %s", r.URL.Path)
+	w.Header().Add("Content-Type", "application/json")
+	
+	if err := json.NewEncoder(w).Encode(r.Context().Value("data")) ; err != nil {
+		http.Error(w, ErrFetchResp, http.StatusInternalServerError)
+	}
 }
 
 func (a *ApiServer) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
 
+
+
+	fmt.Fprintf(w, "the id is: %s",id)
 }
 
 func (a *ApiServer) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 
-}
+}	

@@ -10,24 +10,11 @@ import (
 	"github.com/vier21/go-book-api/pkg/services/user/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository struct {
 	client *mongo.Client
-}
-
-type UpdateUser struct {
-	Username string `json:"username,omitempty" bson:"username,omitempty"`
-	Password string `json:"password,omitempty" bson:"password,omitempty"`
-	Email    string `json:"email,omitempty" bson:"email,omitempty"`
-}
-
-func UpsertUser(u model.User) UpdateUser {
-	return UpdateUser{
-		Username: u.Username,
-		Password: u.Password,
-		Email:    u.Email,
-	}
 }
 
 func NewRepository() *UserRepository {
@@ -121,29 +108,28 @@ func (repo *UserRepository) InsertUser(ctx context.Context, payload model.User) 
 	return payload, nil
 }
 
-func (repo *UserRepository) UpdateUser(ctx context.Context, payload model.User) (model.User, error) {
+func (repo *UserRepository) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (model.User, error) {
 	coll := repo.client.Database("auth").Collection("user")
 
 	filter := bson.M{
-		"_id": payload.Id,
+		"_id": id,
 	}
 
 	update := bson.M{
-		"$set": UpsertUser(payload),
+		"$set": payload,
 	}
 
-	res, err := coll.UpdateOne(ctx, filter, update)
-	if err != nil {
+	option := options.FindOneAndUpdate().SetReturnDocument(1)
+	res := coll.FindOneAndUpdate(ctx, filter, update, option)
+	var updatedDoc model.User
+
+	if err := res.Decode(&updatedDoc); err != nil {
 		return model.User{}, err
-	}
-
-	if res.MatchedCount == 0 {
-		return model.User{}, errors.New("failed Update because no id is matched")
 	}
 
 	fmt.Println("data succesfull updated")
 
-	return payload, nil
+	return updatedDoc, nil
 }
 
 func (repo *UserRepository) DeleteUser(ctx context.Context, ids ...string) error {

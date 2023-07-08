@@ -8,23 +8,25 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/vier21/go-book-api/config"
 	"github.com/vier21/go-book-api/pkg/services/user"
-	"github.com/vier21/go-book-api/pkg/services/user/middleware"
+	mw "github.com/vier21/go-book-api/pkg/services/user/middleware"
 )
 
 type ApiServer struct {
 	Server  *http.Server
-	Mux     *http.ServeMux
+	Router  *chi.Mux
 	Service user.UserService
 }
 
 func NewServer(svc user.UserService) *ApiServer {
-	mux := http.NewServeMux()
+	router := chi.NewRouter()
 
 	server := &http.Server{
 		Addr:         config.GetConfig().ServerPort,
-		Handler:      mux,
+		Handler:      router,
 		IdleTimeout:  120 * time.Second,
 		WriteTimeout: 1 * time.Second,
 		ReadTimeout:  1 * time.Second,
@@ -32,18 +34,34 @@ func NewServer(svc user.UserService) *ApiServer {
 
 	return &ApiServer{
 		Server:  server,
-		Mux:     mux,
+		Router:  router,
 		Service: svc,
 	}
 }
 
-func (a *ApiServer) Run() error {
-	mux := a.Mux
+func (a *ApiServer) NewRouter() *chi.Mux {
+	return a.Router
+}
 
-	mux.HandleFunc("/api/v1/register", middleware.TimoutMiddleware(a.RegisterHandler))
-	mux.HandleFunc("/api/v1/login", a.LoginHandler)
-	mux.HandleFunc("/api/v1/user", middleware.VerifyJWT(a.GetUserHandler))
-	
+func (a *ApiServer) Run() error {
+	r := a.NewRouter()
+
+	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(middleware.Logger)
+		r.Group(func(r chi.Router) {
+			r.Use(mw.VerifyJWT)
+			r.Get("/user", a.GetCurrentUserHandler)
+			r.Put("/update/{id}", a.UpdateUserHandler)
+			r.Delete("/delete/{id}", a.DeleteUserHandler)
+		})
+
+		r.Group(func(r chi.Router) {
+			r.Use(mw.TimoutMiddleware)
+			r.Post("/register", a.RegisterHandler)
+			r.Post("/login", a.LoginHandler)
+		})
+	})
+
 	go func() {
 		log.Printf("Server start on localhost%s \n", config.GetConfig().ServerPort)
 		err := a.Server.ListenAndServe()
