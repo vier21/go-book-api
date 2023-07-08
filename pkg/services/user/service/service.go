@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -116,19 +115,19 @@ func (u *User) LoginUser(ctx context.Context, req def.LoginRequest) (def.LoginPa
 }
 
 func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (model.UpdatedUser, error) {
-	doc, err := u.UserStore.UpdateUser(ctx, id, payload) 
- 
+	doc, err := u.UserStore.UpdateUser(ctx, id, payload)
+
 	if err != nil {
 		return model.UpdatedUser{}, err
 	}
-	
+
 	result := updatedUser(doc)
 
 	return result, nil
 }
 
 func (u *User) DeleteUser(ctx context.Context, id string) error {
-	str :=  []string{"sdasd","dasdas","dsadas"}
+	str := []string{"sdasd", "dasdas", "dsadas"}
 	err := u.UserStore.DeleteUser(ctx, str...)
 	if err != nil {
 		return err
