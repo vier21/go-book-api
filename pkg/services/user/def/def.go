@@ -12,7 +12,7 @@ type RegisterPayload struct {
 }
 type UpdateResponse struct {
 	Status  string          `json:"status"`
-	Payload RegisterPayload `json:"payload"`
+	Payload UpdatePayload `json:"payload"`
 }
 
 type UpdatePayload struct {

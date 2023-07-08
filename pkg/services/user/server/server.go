@@ -46,13 +46,16 @@ func (a *ApiServer) NewRouter() *chi.Mux {
 func (a *ApiServer) Run() error {
 	r := a.NewRouter()
 
-	r.Route("/api/v1", func(r chi.Router) {
+	r.Route("/api/v1/", func(r chi.Router) {
 		r.Use(middleware.Logger)
 		r.Group(func(r chi.Router) {
+			r.Use(middleware.Timeout(10 * time.Second))
 			r.Use(mw.VerifyJWT)
+			
 			r.Get("/user", a.GetCurrentUserHandler)
-			r.Put("/update/{id}", a.UpdateUserHandler)
-			r.Delete("/delete/{id}", a.DeleteUserHandler)
+			r.Put("/user/{id}", a.UpdateUserHandler)
+			r.Delete("/user/{id}", a.DeleteUserHandler)
+			r.Delete("/user", a.DeleteUserHandler)
 		})
 
 		r.Group(func(r chi.Router) {

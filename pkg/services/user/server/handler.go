@@ -87,6 +87,7 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewEncoder(w).Encode(resp); err != nil {
 		http.Error(w, ErrFetchResp, http.StatusInternalServerError)
+		return
 	}
 }
 
@@ -99,17 +100,48 @@ func (a *ApiServer) GetCurrentUserHandler(w http.ResponseWriter, r *http.Request
 	
 	if err := json.NewEncoder(w).Encode(r.Context().Value("data")) ; err != nil {
 		http.Error(w, ErrFetchResp, http.StatusInternalServerError)
+		return
 	}
 }
 
 func (a *ApiServer) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 
+	var data model.UpdateUser
 
+	if err := json.NewDecoder(r.Body).Decode(&data) ; err != nil {
+		http.Error(w, ErrReqBodyNotValid, http.StatusBadRequest)
+		return
+	}
 
-	fmt.Fprintf(w, "the id is: %s",id)
+	doc, err := a.Service.UpdateUser(r.Context(), id, data)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+
+	httpcode := strconv.Itoa(http.StatusOK)
+	status := fmt.Sprintf("Success updated user (%s)", httpcode)
+
+	resp := def.UpdateResponse{
+		Status: status,
+		Payload: doc,
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
 
 func (a *ApiServer) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
-
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		w.Write([]byte("Perform bulk delete"))
+	} else {
+		fmt.Fprintf(w , "ID: %s", id)
+	}
 }	

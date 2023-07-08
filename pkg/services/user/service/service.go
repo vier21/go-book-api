@@ -114,29 +114,38 @@ func (u *User) LoginUser(ctx context.Context, req def.LoginRequest) (def.LoginPa
 	return payload, ss, nil
 }
 
-func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (model.UpdatedUser, error) {
+func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (def.UpdatePayload, error) {
+	empty := model.UpdateUser{}
+
+	if payload == empty {
+		return def.UpdatePayload{}, errors.New("your data is up to date")
+	}
 	doc, err := u.UserStore.UpdateUser(ctx, id, payload)
 
 	if err != nil {
-		return model.UpdatedUser{}, err
+		return def.UpdatePayload{}, err
 	}
 
-	result := updatedUser(doc)
-
+	result := updatedPayload(doc)
 	return result, nil
 }
 
-func (u *User) DeleteUser(ctx context.Context, id string) error {
-	str := []string{"sdasd", "dasdas", "dsadas"}
-	err := u.UserStore.DeleteUser(ctx, str...)
+func (u *User) DeleteUser(ctx context.Context, id string, bulk map[string]string) error {
+	ids := []string{}
+
+	for _, v := range bulk {
+		ids = append(ids, v)
+	}
+
+	err := u.UserStore.BulkDelete(ctx, ids...)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func updatedUser(upUser model.User) model.UpdatedUser {
-	return model.UpdatedUser{
+func updatedPayload(upUser model.User) def.UpdatePayload {
+	return def.UpdatePayload{
 		Id:       upUser.Id,
 		Username: upUser.Username,
 		Email:    upUser.Email,
