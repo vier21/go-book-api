@@ -21,5 +21,6 @@ type UserService interface {
 	RegisterUser(context.Context, model.User) (def.RegisterPayload, error)
 	LoginUser(context.Context, def.LoginRequest) (def.LoginPayload, string, error)
 	UpdateUser(context.Context, string, model.UpdateUser) (def.UpdatePayload, error)
-	DeleteUser(ctx context.Context, id string, bulk map[string]string) error
+	DeleteUser(context.Context, string) error
+	BulkDeleteUser(context.Context, []string) error
 }

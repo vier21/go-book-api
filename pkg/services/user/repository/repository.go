@@ -167,6 +167,7 @@ func (repo *UserRepository) BulkDelete(ctx context.Context, ids ...string) error
 		}
 
 		fmt.Println(del.DeletedCount)
+		return nil
 	}
 
 	err := repo.DeleteUser(ctx, ids[0])
@@ -174,6 +175,5 @@ func (repo *UserRepository) BulkDelete(ctx context.Context, ids ...string) error
 	if err != nil {
 		return err
 	}
-
 	return nil
 }

@@ -97,8 +97,8 @@ func (a *ApiServer) GetCurrentUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	w.Header().Add("Content-Type", "application/json")
-	
-	if err := json.NewEncoder(w).Encode(r.Context().Value("data")) ; err != nil {
+
+	if err := json.NewEncoder(w).Encode(r.Context().Value("data")); err != nil {
 		http.Error(w, ErrFetchResp, http.StatusInternalServerError)
 		return
 	}
@@ -109,7 +109,7 @@ func (a *ApiServer) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	var data model.UpdateUser
 
-	if err := json.NewDecoder(r.Body).Decode(&data) ; err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		http.Error(w, ErrReqBodyNotValid, http.StatusBadRequest)
 		return
 	}
@@ -127,7 +127,7 @@ func (a *ApiServer) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	status := fmt.Sprintf("Success updated user (%s)", httpcode)
 
 	resp := def.UpdateResponse{
-		Status: status,
+		Status:  status,
 		Payload: doc,
 	}
 
@@ -137,11 +137,53 @@ func (a *ApiServer) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type BulkDelete struct {
+	DeletedID []string `json:"deleteId"`
+}
+
 func (a *ApiServer) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	if id == "" {
-		w.Write([]byte("Perform bulk delete"))
-	} else {
-		fmt.Fprintf(w , "ID: %s", id)
+
+	w.Header().Add("Content-Type", "application/json")
+
+	resp := def.DeleteResponse{
+		Status: fmt.Sprintf("success %s: ", strconv.Itoa(http.StatusOK)),
+		Message: "delete user successfull",	
 	}
-}	
+
+	if id == "" {
+		var data BulkDelete
+		
+		err := json.NewDecoder(r.Body).Decode(&data)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		err = a.Service.BulkDeleteUser(r.Context(), data.DeletedID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		byte, err := json.Marshal(resp)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Write(byte)
+		return
+	}
+
+	err := a.Service.DeleteUser(r.Context(), id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(resp); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}

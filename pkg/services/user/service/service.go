@@ -12,6 +12,7 @@ import (
 	"github.com/vier21/go-book-api/pkg/services/user/def"
 	"github.com/vier21/go-book-api/pkg/services/user/model"
 	"github.com/vier21/go-book-api/utils"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var (
@@ -116,6 +117,15 @@ func (u *User) LoginUser(ctx context.Context, req def.LoginRequest) (def.LoginPa
 
 func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (def.UpdatePayload, error) {
 	empty := model.UpdateUser{}
+	_, err := u.UserStore.FindById(ctx, id)
+
+	if id == "" {
+		return def.UpdatePayload{}, errors.New("no is specified is specified in parameter")
+	}
+
+	if err == mongo.ErrNoDocuments {
+		return def.UpdatePayload{}, errors.New("no matched user with given id")
+	}
 
 	if payload == empty {
 		return def.UpdatePayload{}, errors.New("your data is up to date")
@@ -130,14 +140,16 @@ func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUs
 	return result, nil
 }
 
-func (u *User) DeleteUser(ctx context.Context, id string, bulk map[string]string) error {
-	ids := []string{}
-
-	for _, v := range bulk {
-		ids = append(ids, v)
+func (u *User) DeleteUser(ctx context.Context, id string) error {
+	err := u.UserStore.DeleteUser(ctx, id)
+	if err != nil {
+		return err
 	}
+	return nil
+}
 
-	err := u.UserStore.BulkDelete(ctx, ids...)
+func (u *User) BulkDeleteUser(ctx context.Context, bulk []string) error {
+	err := u.UserStore.BulkDelete(ctx, bulk...)
 	if err != nil {
 		return err
 	}
