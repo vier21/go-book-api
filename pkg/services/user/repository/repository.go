@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/google/uuid"
 	"github.com/vier21/go-book-api/pkg/db"
@@ -146,7 +147,7 @@ func (repo *UserRepository) DeleteUser(ctx context.Context, id string) error {
 		return errors.New("Item might be deleted or no item with given ID")
 	}
 
-	fmt.Println("Success delete item")
+	log.Println("Success delete item")
 
 	return nil
 }

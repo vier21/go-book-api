@@ -60,17 +60,14 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Add("Content-Type", "application/json")
-
 	var req common.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
-
 	if err != nil {
 		http.Error(w, ErrReqBodyNotValid, http.StatusBadRequest)
 		return
 	}
 
 	loginpayload, token, err := a.Service.LoginUser(r.Context(), req)
-
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -78,7 +75,6 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	httpcode := strconv.Itoa(http.StatusOK)
 	status := fmt.Sprintf("Success (%s)", httpcode)
-
 	resp := common.LoginResponse{
 		Status:  status,
 		Token:   token,

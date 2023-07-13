@@ -38,7 +38,8 @@ func getSecretKey() []byte {
 }
 
 func getDBName(dburl string) string {
-	rmv := strings.Replace(dburl, "//", "", 1)
+	url := os.Getenv(dburl)
+	rmv := strings.Replace(url, "//", "", 1)
 	split := strings.Split(rmv, "/")
 
 	if len(split) < 2 {

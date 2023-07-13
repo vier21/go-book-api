@@ -8,3 +8,11 @@ type Book struct {
 	Body      string `json:"string" bson:"body"`
 	Publisher string `json:"publisher" bson:"publisher"`
 }
+
+type UpdateBook struct {
+	Title     string `json:"title,omitempty" bson:"title,omitempty"`
+	Author    string `json:"author,omitempty" bson:"author,omitempty"`
+	Slug      string `json:"slug,omitempty" bson:"slug,omitempty"`
+	Body      string `json:"string,omitempty" bson:"body,omitempty"`
+	Publisher string `json:"publisher,omitempty" bson:"publisher,omitempty"`
+}

@@ -10,6 +10,7 @@ import (
 	"github.com/vier21/go-book-api/pkg/services/book/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type BookRepository struct {
@@ -40,7 +41,6 @@ func (b *BookRepository) FindById(ctx context.Context, id string) (model.Book, e
 	}
 
 	var result model.Book
-
 	if err := cur.Decode(&result); err != nil {
 		return model.Book{}, err
 	}
@@ -70,7 +70,6 @@ func (b *BookRepository) FindBySlug(ctx context.Context, slug string) (model.Boo
 	}
 
 	var result model.Book
-
 	if err := cur.Decode(&result); err != nil {
 		return model.Book{}, err
 	}
@@ -107,11 +106,61 @@ func (b *BookRepository) InsertBook(ctx context.Context, book model.Book) (model
 	return book, nil
 }
 
+func (b *BookRepository) BulkInsertBook(ctx context.Context, books []model.Book) (string, error) {
+	return "", nil
+}
+
 func (b *BookRepository) UpdateBook(ctx context.Context, id string, book model.Book) (model.Book, error) {
-	
-	return model.Book{}, nil
+	filter := bson.D{{"_id", id}}
+	update := bson.D{{"$set", book}}
+	opt := options.FindOneAndUpdate().SetReturnDocument(1)
+
+	res := b.collection.FindOneAndUpdate(ctx, filter, update, opt)
+	var updated model.Book
+
+	if res.Err() != nil {
+		return model.Book{}, res.Err()
+	}
+
+	if err := res.Decode(&updated); err != nil {
+		return model.Book{}, err
+	}
+
+	return updated, nil
 }
 
 func (b *BookRepository) DeleteBook(ctx context.Context, id string) error {
+	del, err := b.collection.DeleteOne(ctx, bson.M{
+		"_id": id,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	if del.DeletedCount == 0 {
+		return fmt.Errorf("cannot delete document with given id document deleted: %v", del.DeletedCount)
+	}
+
 	return nil
+}
+
+func (b *BookRepository) BulkDeleteBook(ctx context.Context, ids []string) (int, error) {
+	deleteCount := 0
+	if len(ids) > 1 {
+		fmt.Println("masukk sini")
+
+		models := []mongo.WriteModel{
+			mongo.NewDeleteManyModel().SetFilter(bson.D{{"_id", bson.D{{"$in", ids}}}}),
+		}
+
+		res, err := b.collection.BulkWrite(ctx, models)
+		if err != nil {
+			fmt.Println(res)
+			return deleteCount, err
+		}
+		deleteCount = int(res.DeletedCount)
+
+	}
+	return deleteCount, nil
 }

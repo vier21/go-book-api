@@ -24,7 +24,7 @@ func TimoutMiddleware(next http.Handler) http.Handler {
 }
 
 func VerifyJWT(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		raw := strings.Split(r.Header.Get("Authorization"), " ")
 
 		if len(raw) < 2 {
@@ -64,6 +64,5 @@ func VerifyJWT(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(w, r.WithContext(ctx))
-	}
-	return http.HandlerFunc(fn)
+	})
 }
