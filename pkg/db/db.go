@@ -31,6 +31,7 @@ func NewConnection() *mongo.Client {
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Println("Success connect to db")
 
 	return DB
 }

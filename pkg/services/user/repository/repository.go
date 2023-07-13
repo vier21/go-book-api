@@ -100,7 +100,6 @@ func (repo *UserRepository) InsertUser(ctx context.Context, payload model.User) 
 
 	payload.Id = uuid.NewString()
 	_, err := coll.InsertOne(ctx, payload)
-	
 
 	if err != nil {
 		return model.User{}, err
@@ -121,7 +120,7 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, id string, payload m
 
 	option := options.FindOneAndUpdate().SetReturnDocument(1)
 	res := coll.FindOneAndUpdate(ctx, filter, update, option)
-	
+
 	var updatedDoc model.User
 	if err := res.Decode(&updatedDoc); err != nil {
 		return model.User{}, err

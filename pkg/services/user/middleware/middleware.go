@@ -58,7 +58,7 @@ func VerifyJWT(next http.Handler) http.Handler {
 		if claim, ok := token.Claims.(*service.JWTClaims); ok && token.Valid {
 			ctx = context.WithValue(r.Context(), "data", claim.Data)
 		} else {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			log.Printf("Error %s", err)
 			return
 		}

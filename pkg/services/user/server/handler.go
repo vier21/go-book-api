@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/vier21/go-book-api/pkg/services/user/def"
+	"github.com/vier21/go-book-api/pkg/services/user/common"
 	"github.com/vier21/go-book-api/pkg/services/user/model"
 )
 
@@ -42,7 +42,7 @@ func (a *ApiServer) RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	httpcode := strconv.Itoa(http.StatusOK)
 	status := fmt.Sprintf("Success (%s)", httpcode)
 
-	result := def.RegisterResponse{
+	result := common.RegisterResponse{
 		Status:  status,
 		Payload: register,
 	}
@@ -61,7 +61,7 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "application/json")
 
-	var req def.LoginRequest
+	var req common.LoginRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
@@ -79,7 +79,7 @@ func (a *ApiServer) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	httpcode := strconv.Itoa(http.StatusOK)
 	status := fmt.Sprintf("Success (%s)", httpcode)
 
-	resp := def.LoginResponse{
+	resp := common.LoginResponse{
 		Status:  status,
 		Token:   token,
 		Payload: loginpayload,
@@ -126,7 +126,7 @@ func (a *ApiServer) UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	httpcode := strconv.Itoa(http.StatusOK)
 	status := fmt.Sprintf("Success updated user (%s)", httpcode)
 
-	resp := def.UpdateResponse{
+	resp := common.UpdateResponse{
 		Status:  status,
 		Payload: doc,
 	}
@@ -146,7 +146,7 @@ func (a *ApiServer) DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Add("Content-Type", "application/json")
 
-	resp := def.DeleteResponse{
+	resp := common.DeleteResponse{
 		Status: fmt.Sprintf("success %s: ", strconv.Itoa(http.StatusOK)),
 		Message: "delete user successfull",	
 	}

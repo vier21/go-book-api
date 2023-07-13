@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/vier21/go-book-api/config"
 	"github.com/vier21/go-book-api/pkg/services/user"
-	"github.com/vier21/go-book-api/pkg/services/user/def"
+	"github.com/vier21/go-book-api/pkg/services/user/common"
 	"github.com/vier21/go-book-api/pkg/services/user/model"
 	"github.com/vier21/go-book-api/utils"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -22,7 +22,7 @@ var (
 )
 
 type JWTClaims struct {
-	Data def.LoginPayload `json:"data"`
+	Data common.LoginPayload `json:"data"`
 	jwt.RegisteredClaims
 }
 
@@ -36,15 +36,15 @@ func NewUserService(auth user.UserRepo) *User {
 	}
 }
 
-func RegisterResConverter(usr model.User) def.RegisterPayload {
-	return def.RegisterPayload{
+func RegisterResConverter(usr model.User) common.RegisterPayload {
+	return common.RegisterPayload{
 		Id:       usr.Id,
 		Username: usr.Username,
 		Email:    usr.Email,
 	}
 }
 
-func (u *User) RegisterUser(ctx context.Context, payload model.User) (def.RegisterPayload, error) {
+func (u *User) RegisterUser(ctx context.Context, payload model.User) (common.RegisterPayload, error) {
 
 	existname, _ := u.UserStore.FindByUsername(ctx, payload.Username)
 	existemail, _ := u.UserStore.FindByEmail(ctx, payload.Email)
@@ -75,19 +75,19 @@ func (u *User) RegisterUser(ctx context.Context, payload model.User) (def.Regist
 	return RegisterResConverter(res), nil
 }
 
-func (u *User) LoginUser(ctx context.Context, req def.LoginRequest) (def.LoginPayload, string, error) {
+func (u *User) LoginUser(ctx context.Context, req common.LoginRequest) (common.LoginPayload, string, error) {
 	doc, err := u.UserStore.FindByUsername(ctx, req.Username)
 	if err != nil {
-		return def.LoginPayload{}, "", errors.New("user not found")
+		return common.LoginPayload{}, "", errors.New("user not found")
 	}
 
 	if err := utils.CheckPasswordHash(req.Password, doc.Password); err != nil {
-		return def.LoginPayload{}, "", errors.New("password not matched")
+		return common.LoginPayload{}, "", errors.New("password not matched")
 	}
 
 	mySigningKey := config.GetConfig().SecretKey
 
-	payload := def.LoginPayload{
+	payload := common.LoginPayload{
 		Id:       doc.Id,
 		Username: doc.Username,
 		Email:    doc.Email,
@@ -108,32 +108,32 @@ func (u *User) LoginUser(ctx context.Context, req def.LoginRequest) (def.LoginPa
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	ss, err := token.SignedString(mySigningKey)
 	if err != nil {
-		payload = def.LoginPayload{}
+		payload = common.LoginPayload{}
 		return payload, "", err
 	}
 
 	return payload, ss, nil
 }
 
-func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (def.UpdatePayload, error) {
+func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUser) (common.UpdatePayload, error) {
 	empty := model.UpdateUser{}
 	_, err := u.UserStore.FindById(ctx, id)
 
 	if id == "" {
-		return def.UpdatePayload{}, errors.New("no is specified is specified in parameter")
+		return common.UpdatePayload{}, errors.New("no is specified is specified in parameter")
 	}
 
 	if err == mongo.ErrNoDocuments {
-		return def.UpdatePayload{}, errors.New("no matched user with given id")
+		return common.UpdatePayload{}, errors.New("no matched user with given id")
 	}
 
 	if payload == empty {
-		return def.UpdatePayload{}, errors.New("your data is up to date")
+		return common.UpdatePayload{}, errors.New("your data is up to date")
 	}
 	doc, err := u.UserStore.UpdateUser(ctx, id, payload)
 
 	if err != nil {
-		return def.UpdatePayload{}, err
+		return common.UpdatePayload{}, err
 	}
 
 	result := updatedPayload(doc)
@@ -156,8 +156,8 @@ func (u *User) BulkDeleteUser(ctx context.Context, bulk []string) error {
 	return nil
 }
 
-func updatedPayload(upUser model.User) def.UpdatePayload {
-	return def.UpdatePayload{
+func updatedPayload(upUser model.User) common.UpdatePayload {
+	return common.UpdatePayload{
 		Id:       upUser.Id,
 		Username: upUser.Username,
 		Email:    upUser.Email,

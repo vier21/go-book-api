@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 
-	"github.com/vier21/go-book-api/pkg/services/user/def"
+	"github.com/vier21/go-book-api/pkg/services/user/common"
 	"github.com/vier21/go-book-api/pkg/services/user/model"
 )
 
@@ -18,9 +18,9 @@ type UserRepo interface {
 }
 
 type UserService interface {
-	RegisterUser(context.Context, model.User) (def.RegisterPayload, error)
-	LoginUser(context.Context, def.LoginRequest) (def.LoginPayload, string, error)
-	UpdateUser(context.Context, string, model.UpdateUser) (def.UpdatePayload, error)
+	RegisterUser(context.Context, model.User) (common.RegisterPayload, error)
+	LoginUser(context.Context, common.LoginRequest) (common.LoginPayload, string, error)
+	UpdateUser(context.Context, string, model.UpdateUser) (common.UpdatePayload, error)
 	DeleteUser(context.Context, string) error
 	BulkDeleteUser(context.Context, []string) error
 }
