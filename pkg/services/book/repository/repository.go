@@ -106,8 +106,19 @@ func (b *BookRepository) InsertBook(ctx context.Context, book model.Book) (model
 	return book, nil
 }
 
-func (b *BookRepository) BulkInsertBook(ctx context.Context, books []model.Book) (string, error) {
-	return "", nil
+func (b *BookRepository) BulkInsertBook(ctx context.Context, books []model.Book) ([]interface{}, error) {
+	docs := make([]interface{}, len(books))
+
+	for el := range docs {
+		docs[el] = books[el]
+	}
+
+	result, err := b.collection.InsertMany(ctx, docs)
+	if err != nil {
+		return []any{}, err
+	}
+
+	return result.InsertedIDs, nil
 }
 
 func (b *BookRepository) UpdateBook(ctx context.Context, id string, book model.Book) (model.Book, error) {
