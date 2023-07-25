@@ -48,8 +48,8 @@ func (b *BookRepository) FindById(ctx context.Context, id string) (model.Book, e
 	return result, nil
 }
 
-func (b *BookRepository) FindByName(ctx context.Context, name string) (model.Book, error) {
-	cur := b.collection.FindOne(ctx, bson.D{{"name", name}})
+func (b *BookRepository) FindByTitle(ctx context.Context, title string) (model.Book, error) {
+	cur := b.collection.FindOne(ctx, bson.D{{"title", title}})
 	if cur.Err() != nil {
 		return model.Book{}, cur.Err()
 	}
@@ -122,8 +122,38 @@ func (b *BookRepository) BulkInsertBook(ctx context.Context, books []model.Book)
 }
 
 func (b *BookRepository) UpdateBook(ctx context.Context, id string, book model.Book) (model.Book, error) {
-	filter := bson.D{{"_id", id}}
-	update := bson.D{{"$set", book}}
+	updates := book.Update()
+	filter := bson.M{
+		"_id": id,
+	}
+	update := bson.M{
+		"$set": updates,
+	}
+	opt := options.FindOneAndUpdate().SetReturnDocument(1)
+
+	res := b.collection.FindOneAndUpdate(ctx, filter, update, opt)
+	var updated model.Book
+
+	if res.Err() != nil {
+		return model.Book{}, fmt.Errorf("error no document with given id %s", res.Err() )
+	}
+
+	if err := res.Decode(&updated); err != nil {
+		return model.Book{}, err
+	}
+
+	return updated, nil
+}
+
+func (b *BookRepository) UpdateIncBook(ctx context.Context, count int, id string) (model.Book, error) {
+	filter := bson.M{
+		"_id": id,
+	}
+	update := bson.M{
+		"$inc": bson.M{
+			"quantity": count,
+		},
+	}
 	opt := options.FindOneAndUpdate().SetReturnDocument(1)
 
 	res := b.collection.FindOneAndUpdate(ctx, filter, update, opt)

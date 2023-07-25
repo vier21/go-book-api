@@ -130,8 +130,8 @@ func (u *User) UpdateUser(ctx context.Context, id string, payload model.UpdateUs
 	if payload == empty {
 		return common.UpdatePayload{}, errors.New("your data is up to date")
 	}
+	
 	doc, err := u.UserStore.UpdateUser(ctx, id, payload)
-
 	if err != nil {
 		return common.UpdatePayload{}, err
 	}
