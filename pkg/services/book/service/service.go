@@ -40,6 +40,14 @@ func (b *BookService) GetBookByTitle(ctx context.Context, title string) (model.B
 	}
 	return book, nil
 }
+func (b *BookService) GetBookBySlug(ctx context.Context, slug string) (model.Book, error) {
+	book, err := b.BookRepository.FindBySlug(ctx, slug)
+
+	if err != nil {
+		return book, err
+	}
+	return book, nil
+}
 
 func (b *BookService) StoreBook(ctx context.Context, books ...model.Book) (common.InsertBookResult, error) {
 	var (
@@ -91,7 +99,7 @@ func (b *BookService) StoreBook(ctx context.Context, books ...model.Book) (commo
 			Result:      insertedBook,
 			ResultCount: len(insertedBook),
 		}
-
+		
 		return result, nil
 	}
 
@@ -134,6 +142,20 @@ func (b *BookService) DeleteBook(ctx context.Context, id ...string) (int, error)
 			return count, err
 		}
 		return count, nil
+	}
+
+	find, err := b.BookRepository.FindById(ctx, id[0])
+
+	if err != nil {
+		return 0, err
+	}
+
+	if find.Quantity > 1 {
+		_, err := b.BookRepository.UpdateIncBook(ctx, -1, find.Id)
+		if err != nil {
+			return 0, err
+		}
+		return len(id), nil
 	}
 
 	if err := b.BookRepository.DeleteBook(ctx, id[0]); err != nil {
