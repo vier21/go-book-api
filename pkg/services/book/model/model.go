@@ -5,7 +5,7 @@ type Book struct {
 	Title     string  `json:"title" bson:"title"`
 	Author    string  `json:"author" bson:"author"`
 	Slug      string  `json:"slug" bson:"slug"`
-	Body      string  `json:"string" bson:"body"`
+	Body      string  `json:"body" bson:"body"`
 	Publisher string  `json:"publisher" bson:"publisher"`
 	Quantity  int     `json:"quantity" bson:"quantity"`
 	Price     float64 `json:"price" bson:"Price"`

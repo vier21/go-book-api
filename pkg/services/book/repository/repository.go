@@ -110,6 +110,7 @@ func (b *BookRepository) BulkInsertBook(ctx context.Context, books []model.Book)
 	docs := make([]interface{}, len(books))
 
 	for el := range docs {
+		books[el].Id = uuid.NewString()
 		docs[el] = books[el]
 	}
 
@@ -135,7 +136,7 @@ func (b *BookRepository) UpdateBook(ctx context.Context, id string, book model.B
 	var updated model.Book
 
 	if res.Err() != nil {
-		return model.Book{}, fmt.Errorf("error no document with given id %s", res.Err() )
+		return model.Book{}, fmt.Errorf("error no document with given id %s", res.Err())
 	}
 
 	if err := res.Decode(&updated); err != nil {

@@ -50,7 +50,8 @@ func (a *ApiServer) Run() {
 		r.Get("/{slug}/book", a.GetBookBySlugHandler)
 		r.Post("/book", a.StoreBookHandler)
 		r.Put("/{id}/book", a.UpdateBookHandler)
-		r.Delete("/{id}/book", a.DeleteBookHandlerHandler)
+		r.Delete("/book/{id}", a.DeleteBookHandlerHandler)
+		r.Delete("/book/", a.DeleteBookHandlerHandler)
 	})
 
 	go func() {
