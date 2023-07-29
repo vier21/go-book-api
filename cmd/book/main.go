@@ -9,7 +9,6 @@ import (
 func main() {
 	repo := repository.NewBookRepository()
 	svc := service.NewBookService(repo)
-
 	s := server.NewServer(svc)
 	s.Run()
 }
