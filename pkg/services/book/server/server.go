@@ -11,6 +11,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/vier21/go-book-api/config"
+	mw "github.com/vier21/go-book-api/pkg/middleware"
 	"github.com/vier21/go-book-api/pkg/services/book"
 )
 
@@ -44,8 +45,8 @@ func (a *ApiServer) Run() {
 	r := a.NewRouter()
 
 	r.Use(middleware.AllowContentType("application/json", "text/xml"))
-
 	r.Route("/api/v1", func(r chi.Router) {
+		r.Use(mw.VerifyJWT)
 		r.Get("/book", a.GetAllBookHandler)
 		r.Get("/{slug}/book", a.GetBookBySlugHandler)
 		r.Post("/book", a.StoreBookHandler)

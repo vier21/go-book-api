@@ -11,8 +11,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/vier21/go-book-api/config"
+	mw "github.com/vier21/go-book-api/pkg/middleware"
 	"github.com/vier21/go-book-api/pkg/services/user"
-	mw "github.com/vier21/go-book-api/pkg/services/user/middleware"
 )
 
 type ApiServer struct {
@@ -51,7 +51,7 @@ func (a *ApiServer) Run() error {
 		r.Group(func(r chi.Router) {
 			r.Use(middleware.Timeout(10 * time.Second))
 			r.Use(mw.VerifyJWT)
-			
+
 			r.Get("/user", a.GetCurrentUserHandler)
 			r.Put("/user/{id}", a.UpdateUserHandler)
 			r.Delete("/user/{id}", a.DeleteUserHandler)

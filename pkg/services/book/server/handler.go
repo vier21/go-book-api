@@ -196,6 +196,7 @@ func (a *ApiServer) DeleteBookHandlerHandler(w http.ResponseWriter, r *http.Requ
 
 	count, err := a.Services.DeleteBook(r.Context(), id)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Response{
 			Status: fmt.Sprintf("error request body not valid: %s (%s)", err.Error(), strconv.Itoa(http.StatusBadRequest)),
 			Data:   fmt.Sprintf("deleted items: %s", strconv.Itoa(count)),

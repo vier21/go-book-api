@@ -46,7 +46,7 @@ func VerifyJWT(next http.Handler) http.Handler {
 		}
 
 		var claims service.JWTClaims
-		
+
 		token, err := jwt.ParseWithClaims(bearer, &claims, func(token *jwt.Token) (interface{}, error) {
 			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
